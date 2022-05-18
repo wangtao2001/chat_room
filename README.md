@@ -29,4 +29,4 @@ $ python3 server.py
 $ python3 client.py
 ```
 
-如使用pyinstaller等工具时，请将server目录与client目录分开打包
+如使用pyinstaller等工具时，请将server.py目录与client.py目录分开打包
