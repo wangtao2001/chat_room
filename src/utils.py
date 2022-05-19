@@ -44,6 +44,10 @@ def recv(socket) -> dict:
     """
     data = b''
     r = socket.recv(2)
+    # 这里莫名其妙的client会向server传一个空字节
+    # 所以这里粗暴解决，对应server的处理方式在server.py line 21
+    if r == b'':
+        return {}
     surplus = struct.unpack('>H', r)[0]  # 解析出此次数据的大小
     socket.settimeout(5)
 

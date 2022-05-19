@@ -18,8 +18,13 @@ class Handler(socketserver.BaseRequestHandler):
     def handle(self):
         while True:
             data = recv(self.request)  # 获取用户请求的信息，请求信息类型以data['cmd']表示
+            if len(data) == 0:
+                continue
 
-            if not self.authed:  # 用户未认
+            if data['cmd'] == 'close':  # 退出, 即断开连接
+                self.finish()
+
+            elif not self.authed:  # 用户未认证
                 self.user = data['user']
                 if data['cmd'] == 'login':  # 登录
                     if validate(Handler.users, data['user'], data['pwd']):
@@ -75,8 +80,6 @@ class Handler(socketserver.BaseRequestHandler):
                     self.file_peer = ''
                     send(Handler.clients[data['peer']].request,
                          {'type': 'file_accept', 'ip': self.client_address[0]})
-                elif data['cmd'] == 'close':  # 退出, 即断开连接
-                    self.finish()
 
     def finish(self):  # finish对应关闭socket连接（即当前线程）
         if self.authed:
