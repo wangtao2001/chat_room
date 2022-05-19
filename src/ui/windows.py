@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-from . import main_window
+from src.ui import main_window, login_window
 
 """
 实现各种界面窗口的直接继承
@@ -14,3 +14,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.new.retranslateUi(self)
 
 
+class LoginWindow(QtWidgets.QDialog):
+    def __init__(self):
+        super(LoginWindow, self).__init__()
+        self.new = login_window.Ui_Dialog()
+        self.new.setupUi(self)
+        self.new.retranslateUi(self)

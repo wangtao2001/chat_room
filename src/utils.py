@@ -7,7 +7,7 @@ key = b'fdj27pFJ992FkHQb'
 max_buff_size = 1024
 
 
-def encrypt(data: bytes) -> bytes:
+def __encrypt(data: bytes) -> bytes:
     """
     数据加密
     :param data: 待加密数据
@@ -18,7 +18,7 @@ def encrypt(data: bytes) -> bytes:
     return code + cipher.encrypt(data)
 
 
-def decrypt(data: bytes) -> bytes:
+def __decrypt(data: bytes) -> bytes:
     """
     数据解密
     :param data: 待解密数据
@@ -43,14 +43,16 @@ def recv(socket) -> dict:
     :return: 接受的数据
     """
     data = b''
-    surplus = struct.unpack('>H', socket.recv(2))[0]  # 解析出此次数据的大小
+    r = socket.recv(2)
+    surplus = struct.unpack('>H', r)[0]  # 解析出此次数据的大小
     socket.settimeout(5)
 
     while surplus:  # 表示此次有数据传输
         recv_data = socket.recv(max_buff_size if surplus > max_buff_size else surplus)
         data += recv_data
         surplus -= len(recv_data)
-    return json.loads(decrypt(data))
+    socket.settimeout(None)
+    return json.loads(__decrypt(data))
 
 
 def send(socket, data_dict: dict):
@@ -60,4 +62,4 @@ def send(socket, data_dict: dict):
     :param data_dict: 待传输数据
     :return:
     """
-    socket.send(__pack(encrypt(json.dumps(data_dict).encode('utf-8'))))
+    socket.send(__pack(__encrypt(json.dumps(data_dict).encode('utf-8'))))

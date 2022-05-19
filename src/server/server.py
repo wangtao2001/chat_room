@@ -1,5 +1,5 @@
-from src.server.users_manage import *
-from src.server.chat_history import *
+from src.server.users import *
+from src.server.history import *
 from src.utils import *
 
 import socketserver
@@ -19,10 +19,9 @@ class Handler(socketserver.BaseRequestHandler):
         while True:
             data = recv(self.request)  # 获取用户请求的信息，请求信息类型以data['cmd']表示
 
-            if not self.authed:  # 用户未认证
+            if not self.authed:  # 用户未认
                 self.user = data['user']
                 if data['cmd'] == 'login':  # 登录
-                    print("login")
                     if validate(Handler.users, data['user'], data['pwd']):
                         send(self.request, {'response': 'ok'})
                         self.authed = True
@@ -33,7 +32,6 @@ class Handler(socketserver.BaseRequestHandler):
                         send(self.request, {'response': 'fail', 'reason': '账号或密码错误！'})
 
                 elif data['cmd'] == 'register':  # 注册
-                    print("register")
                     if register(Handler.users, data['user'], data['pwd']):
                         send(self.request, {'response': 'ok'})
                     else:
@@ -77,11 +75,10 @@ class Handler(socketserver.BaseRequestHandler):
                     self.file_peer = ''
                     send(Handler.clients[data['peer']].request,
                          {'type': 'file_accept', 'ip': self.client_address[0]})
-
-                elif data['cmd'] == 'close':  # 退出
+                elif data['cmd'] == 'close':  # 退出, 即断开连接
                     self.finish()
 
-    def finish(self):
+    def finish(self):  # finish对应关闭socket连接（即当前线程）
         if self.authed:
             self.authed = False
             if self.user in Handler.clients.keys():
@@ -93,4 +90,3 @@ class Handler(socketserver.BaseRequestHandler):
 if __name__ == '__main__':
     app = socketserver.ThreadingTCPServer(('127.0.0.1', 8080), Handler)  # 在本地创建一个多线程服务
     app.serve_forever()  # 开启服务
-

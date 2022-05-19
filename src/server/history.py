@@ -13,7 +13,7 @@ def load_history() -> dict:
         return {}
 
 
-def get_key(history: dict, u1, u2):
+def __get_key(history: dict, u1, u2):
     """
     聊天记录是双向的，所以在存储时(u1, u2)与(u2, u1)等价，从u1或u2任意一方都能获取所有记录
     :param history: history: 聊天记录，外部调用load_history获得
@@ -36,7 +36,7 @@ def append_history(history: dict, sender, receiver, msg: str):
     if receiver == '':  # 没有接收方，即聊天室聊天
         key = ('', '')
     else:
-        key = get_key(history, sender, receiver)
+        key = __get_key(history, sender, receiver)
     if key not in history.keys():
         history[key] = []  # 创建一条记录
     history[key].append((sender, time.strftime('%m月%d日%H:%M', time.localtime(time.time())), msg))  # 追加一个新只
@@ -54,7 +54,7 @@ def get_history(history: dict, sender, receiver) -> list:
     if receiver == '':
         key = ('', '')
     else:
-        key = get_key(history, sender, receiver)
+        key = __get_key(history, sender, receiver)
     return history[key] if key in history.keys() else []
 
 
