@@ -1,6 +1,7 @@
 import hashlib
 import sys
 import socket
+import threading
 import time
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
@@ -50,6 +51,13 @@ def on_login_clicked():
             # 为发送消息与发送文件按钮绑定功能
             dialog_window.new.sendButton.clicked.connect(on_send_clicked)
             dialog_window.new.sendFileButton.clicked.connect(on_send_file_clicked)
+            # 尝试去获取当前的用户与历史聊天记录 这些消息会被子线程异步监听
+            send(conn, {'cmd': 'get_users'})
+            send(conn, {'cmd': 'get_history', 'peer': ''})
+            # 创建一个子线程用以监听服务器消息，包括用于列表变更，聊天记录变更
+            t = threading.Thread(target=recv_async, args=())
+            t.setDaemon(True)  # 守护线程，主线程退出的时候子线程也退出
+            t.start()
             dialog_window.show()
             login_window.close()
 
@@ -76,6 +84,36 @@ def on_register_clicked():
             QMessageBox.warning(login_window, "警告", "注册失败", QMessageBox.Yes | QMessageBox.No)
 
 
+# 监听后台消息
+def recv_async():
+    while True:
+        data = recv(conn)
+        if data['type'] == 'get_users':  # 获取所有用户
+            for user in [''] + data['data']:
+                dialog_window.users[user] = False
+            dialog_window.fresh_user_list()  # 刷新用户列表
+        elif data['type'] == 'get_history':  # 获取聊天记录
+            if data['peer'] == current_session:
+                dialog_window.history = []
+                for entry in data['data']:
+                    dialog_window.history.append([entry[0], entry[1], entry[2]])
+                    dialog_window.fresh_history()
+        elif data['type'] == 'broadcast':  # 聊天室有人发言
+            if current_session == '':
+                dialog_window.history.append([data['peer'], time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), data['msg']])
+                dialog_window.fresh_history()
+            else:
+                dialog_window.users[data['peer']] = True  # 私聊
+                dialog_window.fresh_user_list()
+        elif data['type'] == 'peer_joined':
+            dialog_window.users[data['peer']] = False  # 有人进入
+            dialog_window.fresh_user_list()
+        elif data['type'] == 'peer_left':  # 有人离开
+            if data['peer'] in dialog_window.users.keys():
+                del dialog_window.users[data['peer']]
+            dialog_window.fresh_user_list()
+
+
 # 发送消息
 def on_send_clicked():
     message = dialog_window.new.messageEdit.text()
@@ -85,12 +123,12 @@ def on_send_clicked():
         send(conn, {'cmd': 'chat', 'peer': current_session, 'msg': message})
         # 往窗口上添加一条记录
         dialog_window.history.append([username, time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), message])
-        dialog_window.flush_history()  # 更新聊天记录
+        dialog_window.fresh_history()  # 更新聊天记录
 
 
 # 发送文件
 def on_send_file_clicked():
-    print("发送文件")
+    pass
 
 
 if __name__ == "__main__":

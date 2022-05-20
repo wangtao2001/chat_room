@@ -1,34 +1,13 @@
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QStringListModel
 from PyQt5.QtWidgets import QApplication
-from typing import List
+from typing import List, Dict
 
 from src.ui import main_window, login_window
 
 """
 实现各种界面窗口的直接继承
 """
-
-
-class MainWindow(QtWidgets.QMainWindow):
-    history: List[list] = []
-
-    def __init__(self):
-        super(MainWindow, self).__init__()
-        self.new = main_window.Ui_MainWindow()
-        self.new.setupUi(self)
-        self.new.retranslateUi(self)
-
-    # 考虑到这里的循环遍历比较耗时，故使用多线程来循环，完成后刷新页面，进程结束
-    def flush_history(self):
-        flush_thread = FlushHistoryThread(self.history)
-        flush_thread.finishSignal.connect(self.flush_history_callback)
-        flush_thread.run()
-
-    def flush_history_callback(self, content):
-        self.new.messageDialog.setHtml(QtCore.QCoreApplication.translate("MainWindow", content))
-        self.new.messageEdit.setText("")  # 按照设计原则这两句放在这比较好
-        QApplication.processEvents()
 
 
 class LoginWindow(QtWidgets.QDialog):
@@ -39,8 +18,50 @@ class LoginWindow(QtWidgets.QDialog):
         self.new.retranslateUi(self)
 
 
+class MainWindow(QtWidgets.QMainWindow):
+    history: List[list] = []
+    users: Dict[str, bool] = {}  # 所有用户与用户被选择
+
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.new = main_window.Ui_MainWindow()
+        self.new.setupUi(self)
+        self.new.retranslateUi(self)
+
+    # 刷新聊天记录
+    # 考虑到这里的循环遍历比较耗时，故使用多线程来循环，完成后刷新页面，进程结束，下同
+    def fresh_history(self):
+        fresh_thread = FreshHistoryThread(self.history)
+        fresh_thread.finishSignal.connect(self.fresh_history_callback)
+        fresh_thread.run()
+
+    def fresh_history_callback(self, content):
+        self.new.messageDialog.setHtml(QtCore.QCoreApplication.translate("MainWindow", content))
+        # 以下保持视图始终在dialog底部
+        self.new.messageDialog.ensureCursorVisible() # 游标可用
+        cursor = self.new.messageDialog.textCursor()  # 设置游标
+        pos = len(self.new.messageDialog.toPlainText())  # 获取文本尾部的位置
+        cursor.setPosition(pos)  # 游标位置设置为尾部
+        self.new.messageDialog.setTextCursor(cursor)  # 滚动到游标位置
+        self.new.messageEdit.setText("")  # 按照设计原则这两句放在这比较好
+        QApplication.processEvents()
+
+    # 刷新用户列表，这里就不用多线程了
+    def fresh_user_list(self):
+        slm = QStringListModel()  # 数据模型
+        tmp = []
+        for user in self.users.keys():
+            name = '世界聊天室' if user == '' else user
+            if self.users[user]:
+                name += ' (*)'
+            tmp.append(name)
+        slm.setStringList(tmp)
+        self.new.userList.setModel(slm)  # 将QListView与模型绑定
+        # 接下来是选定用户的操作
+
+
 # 使用多线程处理页刷新问题
-class FlushHistoryThread(QObject):
+class FreshHistoryThread(QObject):
     finishSignal = pyqtSignal(str)
 
     def __init__(self, history: list):
