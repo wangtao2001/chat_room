@@ -39,7 +39,7 @@ def append_history(history: dict, sender, receiver, msg: str):
         key = __get_key(history, sender, receiver)
     if key not in history.keys():
         history[key] = []  # 创建一条记录
-    history[key].append((sender, time.strftime('%m月%d日%H:%M', time.localtime(time.time())), msg))  # 追加一个新只
+    history[key].append((sender, time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), msg))  # 追加一个新记录
     save_history(history)
 
 

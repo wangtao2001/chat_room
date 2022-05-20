@@ -66,7 +66,7 @@ class Handler(socketserver.BaseRequestHandler):
                                  {'type': 'broadcast', 'peer': self.user, 'msg': data['msg']})
                     append_history(Handler.history, self.user, '', data['msg'])  # 这里添加聊天记时不许要指定接收方
 
-                elif data['cmd'] == 'file_request':  # 请求发送数据
+                elif data['cmd'] == 'file_request':  # 请求发送文件
                     Handler.clients[data['peer']].file_peer = self.user
                     send(Handler.clients[data['peer']].request,
                          {'type': 'file_request', 'peer': self.user, 'filename': data['filename'],

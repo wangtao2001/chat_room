@@ -26,29 +26,29 @@ class Ui_MainWindow(object):
         font.setPointSize(14)
         self.title.setFont(font)
         self.title.setObjectName("title")
-        self.message_dialog = QtWidgets.QTextBrowser(self.centralwidget)
-        self.message_dialog.setGeometry(QtCore.QRect(90, 100, 461, 431))
-        self.message_dialog.setObjectName("message_dialog")
-        self.user_list = QtWidgets.QListView(self.centralwidget)
-        self.user_list.setGeometry(QtCore.QRect(560, 100, 241, 431))
-        self.user_list.setObjectName("user_list")
-        self.message_edit = QtWidgets.QLineEdit(self.centralwidget)
-        self.message_edit.setGeometry(QtCore.QRect(90, 540, 461, 31))
-        self.message_edit.setObjectName("message_edit")
-        self.send = QtWidgets.QPushButton(self.centralwidget)
-        self.send.setGeometry(QtCore.QRect(560, 540, 121, 31))
+        self.messageDialog = QtWidgets.QTextBrowser(self.centralwidget)
+        self.messageDialog.setGeometry(QtCore.QRect(90, 100, 461, 431))
+        self.messageDialog.setObjectName("messageDialog")
+        self.userList = QtWidgets.QListView(self.centralwidget)
+        self.userList.setGeometry(QtCore.QRect(560, 100, 241, 431))
+        self.userList.setObjectName("userList")
+        self.messageEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.messageEdit.setGeometry(QtCore.QRect(90, 540, 461, 31))
+        self.messageEdit.setObjectName("messageEdit")
+        self.sendButton = QtWidgets.QPushButton(self.centralwidget)
+        self.sendButton.setGeometry(QtCore.QRect(560, 540, 121, 31))
         font = QtGui.QFont()
         font.setFamily("HarmonyOS Sans")
         font.setPointSize(12)
-        self.send.setFont(font)
-        self.send.setObjectName("send")
-        self.send_file = QtWidgets.QPushButton(self.centralwidget)
-        self.send_file.setGeometry(QtCore.QRect(690, 540, 111, 31))
+        self.sendButton.setFont(font)
+        self.sendButton.setObjectName("sendButton")
+        self.sendFileButton = QtWidgets.QPushButton(self.centralwidget)
+        self.sendFileButton.setGeometry(QtCore.QRect(690, 540, 111, 31))
         font = QtGui.QFont()
         font.setFamily("HarmonyOS Sans")
         font.setPointSize(12)
-        self.send_file.setFont(font)
-        self.send_file.setObjectName("send_file")
+        self.sendFileButton.setFont(font)
+        self.sendFileButton.setObjectName("sendFileButton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 915, 26))
@@ -64,15 +64,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.title.setText(_translate("MainWindow", "欢迎：晚安白日梦"))
-        self.message_dialog.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'SimSun\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:11pt;\">2020-5-18 19:37</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:11pt;\">晚安白日梦：你好呀!!</span></p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:11pt;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:11pt;\">2020-5-18 19:37</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:11pt;\">小熊软糖：你好~</span></p></body></html>"))
-        self.send.setText(_translate("MainWindow", "发送消息"))
-        self.send_file.setText(_translate("MainWindow", "发送文件"))
+        self.title.setText(_translate("MainWindow", ""))
+        # 在这里将ui逻辑删除
+        self.sendButton.setText(_translate("MainWindow", "发送消息"))
+        self.sendFileButton.setText(_translate("MainWindow", "发送文件"))

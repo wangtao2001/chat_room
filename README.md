@@ -28,5 +28,3 @@ $ python3 server.py
 ```shell
 $ python3 client.py
 ```
-
-如使用pyinstaller等工具时，请将server.py目录与client.py目录分开打包
