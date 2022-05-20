@@ -4,7 +4,7 @@ import socket
 import threading
 import time
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 from src.ui.windows import *
 from src.utils import *
 
@@ -51,6 +51,8 @@ def on_login_clicked():
             # 为发送消息与发送文件按钮绑定功能
             dialog_window.new.sendButton.clicked.connect(on_send_clicked)
             dialog_window.new.sendFileButton.clicked.connect(on_send_file_clicked)
+            # 绑定user_list选择功能
+            dialog_window.new.userList.clicked.connect(on_session_select)
             # 尝试去获取当前的用户与历史聊天记录 这些消息会被子线程异步监听
             send(conn, {'cmd': 'get_users'})
             send(conn, {'cmd': 'get_history', 'peer': ''})
@@ -107,10 +109,12 @@ def recv_async():
                 dialog_window.fresh_user_list()
         elif data['type'] == 'peer_joined':
             dialog_window.users[data['peer']] = False  # 有人进入
+            print(data['peer'])
             dialog_window.fresh_user_list()
         elif data['type'] == 'peer_left':  # 有人离开
             if data['peer'] in dialog_window.users.keys():
                 del dialog_window.users[data['peer']]
+            print(data['peer'])
             dialog_window.fresh_user_list()
 
 
@@ -129,6 +133,11 @@ def on_send_clicked():
 # 发送文件
 def on_send_file_clicked():
     pass
+
+
+# 选择用户
+def on_session_select(qModelIndex):
+    print(f"你选择了:{dialog_window.ulist[qModelIndex.row()]}")
 
 
 if __name__ == "__main__":
