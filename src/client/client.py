@@ -94,27 +94,32 @@ def recv_async():
             for user in [''] + data['data']:
                 dialog_window.users[user] = False
             dialog_window.fresh_user_list()  # 刷新用户列表
-        elif data['type'] == 'get_history':  # 获取聊天记录
+        elif data['type'] == 'get_history':  # 主动获取聊天记录
             if data['peer'] == current_session:
                 dialog_window.history = []
                 for entry in data['data']:
                     dialog_window.history.append([entry[0], entry[1], entry[2]])
-                    dialog_window.fresh_history()
+            dialog_window.fresh_history()
         elif data['type'] == 'broadcast':  # 聊天室有人发言
-            if current_session == '':
+            if current_session == '':  # 当前就在聊天室
                 dialog_window.history.append([data['peer'], time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), data['msg']])
                 dialog_window.fresh_history()
             else:
-                dialog_window.users[data['peer']] = True  # 私聊
+                dialog_window.users[""] = True  # 当前不在聊天室
+                dialog_window.fresh_user_list()
+        elif data['type'] == 'msg':  # 私聊
+            if data['peer'] == current_session:  # 私聊对象与发送私聊消息的对象相同
+                dialog_window.history.append([data['peer'], time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), data['msg']])
+                dialog_window.fresh_history()
+            else:
+                dialog_window.users[data['peer']] = True  # 不同
                 dialog_window.fresh_user_list()
         elif data['type'] == 'peer_joined':
             dialog_window.users[data['peer']] = False  # 有人进入
-            print(data['peer'])
             dialog_window.fresh_user_list()
         elif data['type'] == 'peer_left':  # 有人离开
             if data['peer'] in dialog_window.users.keys():
                 del dialog_window.users[data['peer']]
-            print(data['peer'])
             dialog_window.fresh_user_list()
 
 
@@ -137,7 +142,24 @@ def on_send_file_clicked():
 
 # 选择用户
 def on_session_select(qModelIndex):
-    print(f"你选择了:{dialog_window.ulist[qModelIndex.row()]}")
+    global current_session
+    u = dialog_window.ulist[qModelIndex.row()]
+    changed = False
+    if qModelIndex.row() != 0:  # 选择的不是世界聊天室
+        if current_session != u.rstrip(' (*)'):
+            changed = True
+            current_session = u.rstrip(' (*)')
+            dialog_window.users[current_session] = False
+            dialog_window.new.title.setText(f"{current_session} <- {username}")
+    else:
+        if current_session != "":
+            changed = True
+            current_session = ""
+            dialog_window.users[''] = False
+            dialog_window.new.title.setText(f"欢迎：{username}")
+    dialog_window.fresh_user_list()
+    if changed:  # 如果对象变化了就获取聊天记录刷新页面
+        send(conn, {'cmd': 'get_history', 'peer': current_session})
 
 
 if __name__ == "__main__":

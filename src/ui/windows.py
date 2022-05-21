@@ -1,3 +1,5 @@
+import re
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QObject, pyqtSignal, QStringListModel
 from PyQt5.QtWidgets import QApplication
@@ -32,7 +34,7 @@ class MainWindow(QtWidgets.QMainWindow):
     # 刷新聊天记录
     # 考虑到这里的循环遍历比较耗时，故使用多线程来循环，完成后刷新页面，进程结束，下同
     def fresh_history(self):
-        myname = self.new.title.text().split("：")[1]
+        myname = re.split("：| <- ", self.new.title.text())[1]  # 有两种title
         fresh_thread = FreshHistoryThread(self.history, myname)
         fresh_thread.finishSignal.connect(self.fresh_history_callback)
         fresh_thread.run()
@@ -40,7 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def fresh_history_callback(self, content):
         self.new.messageDialog.setHtml(QtCore.QCoreApplication.translate("MainWindow", content))
         # 以下保持视图始终在dialog底部
-        self.new.messageDialog.ensureCursorVisible() # 游标可用
+        self.new.messageDialog.ensureCursorVisible()  # 游标可用
         cursor = self.new.messageDialog.textCursor()  # 设置游标
         pos = len(self.new.messageDialog.toPlainText())  # 获取文本尾部的位置
         cursor.setPosition(pos)  # 游标位置设置为尾部

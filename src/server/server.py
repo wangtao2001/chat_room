@@ -56,7 +56,7 @@ class Handler(socketserver.BaseRequestHandler):
 
                 elif data['cmd'] == 'chat' and data['peer'] != '':  # 私聊
                     send(Handler.clients[data['peer']].request,  # 指向具体的用户
-                         {'type': 'msg', 'peer': self.user, 'msg': data['msg']})
+                         {'type': 'msg', 'peer': self.user, 'msg': data['msg']})  # 发送私聊内容
                     append_history(Handler.history, self.user, data['peer'], data['msg'])  # 添加一条记录
 
                 elif data['cmd'] == 'chat' and data['peer'] == '':  # 聊天室聊天

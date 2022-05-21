@@ -35,6 +35,7 @@ class Ui_Dialog(object):
         font.setFamily("HarmonyOS Sans")
         font.setPointSize(12)
         self.pwd.setFont(font)
+        self.pwd.setEchoMode(QtWidgets.QLineEdit.Password)
         self.pwd.setObjectName("pwd")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.pwd)
         self.label = QtWidgets.QLabel(self.formLayoutWidget)
