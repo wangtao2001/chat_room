@@ -1,10 +1,12 @@
 import hashlib
+import os.path
 import sys
 import socket
 import threading
 import time
 
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import QDir
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from src.ui.windows import *
 from src.utils import *
 
@@ -17,6 +19,7 @@ dialog_window: MainWindow  # 将窗口提升为module变量的位置，否则对
 # 同样，对这些变量(全局变量)的使用不需要global声明， 只有赋值才需要
 current_session = ""  # 当前会话(是聊天室还是私聊, 默认是聊天室)
 username: str  # 当前用户名
+file_transfer_pending = False  # 文件等待传输
 
 
 # 断开连接 发送断开信息
@@ -88,6 +91,7 @@ def on_register_clicked():
 
 # 监听后台消息
 def recv_async():
+    global current_session
     while True:
         data = recv(conn)
         if data['type'] == 'get_users':  # 获取所有用户
@@ -102,14 +106,16 @@ def recv_async():
             dialog_window.fresh_history()
         elif data['type'] == 'broadcast':  # 聊天室有人发言
             if current_session == '':  # 当前就在聊天室
-                dialog_window.history.append([data['peer'], time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), data['msg']])
+                dialog_window.history.append(
+                    [data['peer'], time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), data['msg']])
                 dialog_window.fresh_history()
             else:
                 dialog_window.users[""] = True  # 当前不在聊天室
                 dialog_window.fresh_user_list()
         elif data['type'] == 'msg':  # 私聊
             if data['peer'] == current_session:  # 私聊对象与发送私聊消息的对象相同
-                dialog_window.history.append([data['peer'], time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), data['msg']])
+                dialog_window.history.append(
+                    [data['peer'], time.strftime('%Y/%m/%d %H:%M', time.localtime(time.time())), data['msg']])
                 dialog_window.fresh_history()
             else:
                 dialog_window.users[data['peer']] = True  # 不同
@@ -120,7 +126,17 @@ def recv_async():
         elif data['type'] == 'peer_left':  # 有人离开
             if data['peer'] in dialog_window.users.keys():
                 del dialog_window.users[data['peer']]
+            if data['peer'] == current_session:  # 当前私聊的人离开了，转换成聊天室
+                current_session = ""
+                dialog_window.users[""] = False
+                dialog_window.new.title.setText(f"欢迎：{username}")
+                dialog_window.new.sendFileButton.setEnabled(False)
+                send(conn, {'cmd': 'get_history', 'peer': ''})
             dialog_window.fresh_user_list()
+        elif data['type'] == 'file_request':  # 有人想要发送文件
+            # recv_async 是子线程，但qt中的gui都要在主线程，所以这里不能直接使用QMessageBox
+            # QMessageBox.information(dialog_window, "消息", f"{data['peer']}想要给你发送文件：{data['filename']} (大小：{data['size']}) 是否接收?", QMessageBox.Yes | QMessageBox.No)
+            pass
 
 
 # 发送消息
@@ -137,7 +153,28 @@ def on_send_clicked():
 
 # 发送文件
 def on_send_file_clicked():
-    pass
+    global file_transfer_pending
+    try:
+        dialog = QFileDialog()  # 对话框对象
+        dialog.setFileMode(QFileDialog.AnyFile)  # 设置打开文件类型 这里是所有文件
+        dialog.setFilter(QDir.Files)
+        if dialog.exec():  # 打开文件
+            filenames = dialog.selectedFiles()[0]  # 返回被选择的文件（可以打开多个, 选择第一个）
+            filename = os.path.basename(filenames)  # 文件名basename
+            size = os.path.getsize(filenames)  # 文件大小（字节）
+            count = 0
+            while not 1 < size < 1024 and count < 6:
+                size /= 1024
+                count += 1
+            size = str(format(size, '.2f')) + ['B', 'KB', 'MB', 'GB', 'TB', 'PB'][count]  # 给文件大小附上单位
+            send(conn, {'cmd': 'file_request', 'peer': current_session, 'filename': filename, 'size': size})  # 发送请求
+            dialog_window.new.sendFileButton.setText("等待中")
+            dialog_window.new.sendFileButton.setEnabled(False)
+            QApplication.processEvents()
+            file_transfer_pending = True
+
+    except FileNotFoundError:
+        QMessageBox.warning(dialog_window, "警告", "文件不存在", QMessageBox.Yes | QMessageBox.No)
 
 
 # 选择用户
@@ -149,6 +186,8 @@ def on_session_select(qModelIndex):
         if current_session != u.rstrip(' (*)'):
             changed = True
             current_session = u.rstrip(' (*)')
+            if not file_transfer_pending:
+                dialog_window.new.sendFileButton.setEnabled(True)  # 只有私聊可以发文件
             dialog_window.users[current_session] = False
             dialog_window.new.title.setText(f"{current_session} <- {username}")
     else:
@@ -157,6 +196,7 @@ def on_session_select(qModelIndex):
             current_session = ""
             dialog_window.users[''] = False
             dialog_window.new.title.setText(f"欢迎：{username}")
+            dialog_window.new.sendFileButton.setEnabled(False)
     dialog_window.fresh_user_list()
     if changed:  # 如果对象变化了就获取聊天记录刷新页面
         send(conn, {'cmd': 'get_history', 'peer': current_session})

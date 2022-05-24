@@ -43,6 +43,7 @@ class Ui_MainWindow(object):
         self.sendButton.setFont(font)
         self.sendButton.setObjectName("sendButton")
         self.sendFileButton = QtWidgets.QPushButton(self.centralwidget)
+        self.sendFileButton.setEnabled(False)
         self.sendFileButton.setGeometry(QtCore.QRect(690, 540, 111, 31))
         font = QtGui.QFont()
         font.setFamily("HarmonyOS Sans")
@@ -64,7 +65,5 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.title.setText(_translate("MainWindow", ""))
-        # 在这里将ui逻辑删除
         self.sendButton.setText(_translate("MainWindow", "发送消息"))
         self.sendFileButton.setText(_translate("MainWindow", "发送文件"))

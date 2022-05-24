@@ -1,7 +1,7 @@
 import re
 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import QObject, pyqtSignal, QStringListModel
+from PyQt5.QtCore import pyqtSignal, QStringListModel, QThread
 from PyQt5.QtWidgets import QApplication
 from typing import List, Dict
 
@@ -37,7 +37,8 @@ class MainWindow(QtWidgets.QMainWindow):
         myname = re.split("：| <- ", self.new.title.text())[1]  # 有两种title
         fresh_thread = FreshHistoryThread(self.history, myname)
         fresh_thread.finishSignal.connect(self.fresh_history_callback)
-        fresh_thread.run()
+        fresh_thread.start()
+        fresh_thread.exec()
 
     def fresh_history_callback(self, content):
         self.new.messageDialog.setHtml(QtCore.QCoreApplication.translate("MainWindow", content))
@@ -65,7 +66,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 # 使用多线程处理页刷新问题
-class FreshHistoryThread(QObject):
+class FreshHistoryThread(QThread):
     finishSignal = pyqtSignal(str)
 
     def __init__(self, history: list, myname: str):

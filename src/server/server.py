@@ -70,7 +70,7 @@ class Handler(socketserver.BaseRequestHandler):
                     Handler.clients[data['peer']].file_peer = self.user
                     send(Handler.clients[data['peer']].request,
                          {'type': 'file_request', 'peer': self.user, 'filename': data['filename'],
-                          'size': data['size'], 'md5': data['md5']})
+                          'size': data['size']})
 
                 elif data['cmd'] == 'file_deny' and data['peer'] == self.file_peer:  # 拒绝文件
                     self.file_peer = ''
